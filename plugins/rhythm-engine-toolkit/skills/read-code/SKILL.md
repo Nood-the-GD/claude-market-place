@@ -7,7 +7,7 @@ description: Use when the user asks to read, research, or explain how a named fe
 
 ## Overview
 
-Dispatches the `code-researcher` subagent to answer "how does X work" questions. `code-researcher` already reads cheaply and in parallel on its own (it fans out to `code-reader`, a Haiku worker, for the actual file reading) and does exactly one synthesis pass itself — so the cost-efficient default is **one** `code-researcher` call, not several. Only escalate to multiple parallel `code-researcher` dispatches when the user explicitly wants extra depth or cross-checking: each additional researcher call re-pays a full synthesis pass and its angles often re-read overlapping files.
+Dispatches the built-in `Explore` subagent to answer "how does X work" questions. A head-to-head test against the old `code-researcher`/`code-reader` fan-out found `Explore` faster, cheaper, and more reliable for this job: a single foreground `Explore` call returned a complete, accurately-cited report, while `code-researcher`'s multi-agent orchestration took much longer, cost more tokens, and in one run lost its final synthesis entirely (the background completion notification only delivered a truncated fragment). So the default is **one** `Explore` call, not a multi-agent dispatch.
 
 ## When to use
 
@@ -17,16 +17,16 @@ Dispatches the `code-researcher` subagent to answer "how does X work" questions.
 ## Process
 
 1. Extract the feature name/description from the user's request.
-2. **Default: dispatch exactly one `code-researcher` Agent call.** Give it the feature name/description verbatim and let it scope, dispatch its own `code-reader` reads, and synthesize on its own. `run_in_background: false` unless the user wants you to keep working on something else meanwhile.
-3. **Escalate to multiple parallel `code-researcher` calls only when** the user explicitly asks for it (e.g. "spin up a team", "be thorough", "multiple angles", "cross-check", "second opinion") or the feature is clearly large/cross-cutting enough (spans several unrelated packages/games) that one pass would be shallow:
+2. **Default: dispatch exactly one `Explore` Agent call.** `subagent_type: "Explore"`, `run_in_background: false` unless the user wants you to keep working on something else meanwhile. Give it the feature name/description verbatim, ask it to search "very thorough" (Explore's own breadth setting) since this is a full-feature explanation rather than a quick lookup, and ask for file:line citations.
+3. **Escalate to multiple parallel `Explore` calls only when** the user explicitly asks for it (e.g. "spin up a team", "be thorough", "multiple angles", "cross-check", "second opinion") or the feature is clearly large/cross-cutting enough (spans several unrelated packages/games) that one agent's read window would plausibly miss things:
    - Split into 3-4 independent angles that fit the feature, e.g. entry point/trigger, data/state flow, UI/presentation, config/edge cases.
-   - Send one `Agent` call per angle **in a single message** so they run concurrently — `subagent_type: "code-researcher"`, a self-contained prompt naming the feature and that agent's specific angle (each agent has no memory of the others).
+   - Send one `Agent` call per angle **in a single message** so they run concurrently — `subagent_type: "Explore"`, a self-contained prompt naming the feature and that agent's specific angle (each agent has no memory of the others).
    - When all agents return, synthesize their reports into one coherent narrative end-to-end, with file:line references. Do not just concatenate the raw reports back to back.
-4. In the default single-dispatch case, `code-researcher`'s own report is already the final synthesis — pass it through (lightly edited for the conversation) rather than re-synthesizing it again.
+4. In the default single-dispatch case, `Explore`'s own report is already a complete answer — pass it through (lightly edited for the conversation) rather than re-synthesizing it from scratch.
 
 ## Quick reference
 
-Angles to use only when escalating to a multi-researcher fan-out:
+Angles to use only when escalating to a multi-agent fan-out:
 
 | Angle example | What it covers |
 |---|---|
@@ -39,9 +39,9 @@ Angles to use only when escalating to a multi-researcher fan-out:
 
 | Mistake | Fix |
 |---|---|
-| Fanning out to 3-4 `code-researcher` calls by default | Default to one call — it already parallelizes its own reading cheaply via `code-reader` |
-| Re-synthesizing a single `code-researcher`'s own report | Pass its report through — it's already the final synthesis |
-| Escalating to a multi-researcher team for a small/narrow feature | Reserve escalation for an explicit ask or a genuinely cross-cutting feature |
-| Overriding `model`/effort on the `code-researcher` call | Leave it unset — the agent is already pinned (Sonnet, medium effort) |
+| Fanning out to 3-4 `Explore` calls by default | Default to one call — escalate only for explicit asks or genuinely cross-cutting features |
+| Re-synthesizing a single `Explore` call's own report | Pass its report through — it's already a complete answer |
+| Escalating to a multi-agent team for a small/narrow feature | Reserve escalation for an explicit ask or a genuinely cross-cutting feature |
 | Dispatching escalated agents one at a time | Send all `Agent` calls in one message so they run in parallel |
 | Pasting each subagent's report back to back | Synthesize into one unified explanation |
+| Using `code-researcher`/`code-reader` for this skill | Deprecated for this purpose — tested slower, costlier, and lost its final output in a background run |
