@@ -15,17 +15,12 @@ explicit paths per commit.
 ## What belongs in a commit
 
 - **C# files**: always in scope — they're the source of truth for intent.
-- **`.prefab` / `.unity` (scenes)**: include if EITHER —
-  (a) `git diff -- <path>` shows a change that traces to a modified C# file
-  in the *same* commit — a component added/removed, a serialized field
-  newly wired to a script member, a GUID/string that matches a renamed C#
-  constant; OR
-  (b) the diff is a coherent, deliberate-looking change on its own — an
-  anchor/pivot moved, a component enabled/disabled, a color/size/text
-  value clearly set on purpose — even with no C# link at all.
-  Either way, still leave out a diff that's pure transform-number drift,
-  GUID reordering, or fileID/modification-list churn with no discernible
-  intent — that's noise regardless of which criterion got it this far.
+- **`.prefab` / `.unity` (scenes)**: only if `git diff -- <path>` shows a
+  change that traces to a modified C# file in the *same* commit — a
+  component added/removed, a serialized field newly wired to a script
+  member, a GUID/string that matches a renamed C# constant. A prefab whose
+  diff is only transform numbers, GUID reordering, or fileID churn with no
+  corresponding C# change is noise — leave it out.
 - **`.asset` / other assets**: only if the diff content is a direct,
   intentional consequence of the C# change (e.g. a database asset's entry
   renamed to match a renamed constant in the paired C# diff). Default to
@@ -33,10 +28,8 @@ explicit paths per commit.
 
 ## What to leave out by default
 
-Recurring noise patterns in this repo's working tree — these categories are
-excluded on principle, even when the diff itself looks deliberate (a version
-bump is still a version bump). The "coherent, deliberate-looking diff" leniency
-above is for `.prefab`/`.unity` content changes, not for these:
+Recurring noise patterns in this repo's working tree — treat these as
+excluded unless a specific line in the C# diff explains the value:
 
 - Runtime/save-state ScriptableObjects: `ModuleUserData/**/*.asset`
   (`UserData*.asset`) — Play-mode test artifacts, not source.
@@ -53,13 +46,9 @@ above is for `.prefab`/`.unity` content changes, not for these:
 
 1. `git status --porcelain=v1 -uno` and `git diff --stat` — never `-uall`.
 2. Classify every path with the rules above. For each `.prefab` / `.unity` /
-   `.asset` on the fence, run `git diff -- <path>` and check two things,
-   don't guess from the filename or directory alone: (a) does the
-   field/ID/component it touches also appear in a modified C# file's diff,
-   and (b) failing that, does the diff itself read as a deliberate value
-   change (anchor/pivot moved, component toggled, a value clearly set on
-   purpose) rather than transform-number drift or fileID/GUID reordering.
-   Either (a) or (b) is enough to include it.
+   `.asset` on the fence, run `git diff -- <path>` and check whether the
+   field/ID/component it touches also appears in a modified C# file's diff —
+   don't guess from the filename or directory alone.
 3. Group the included files into logical commits: one concern per commit,
    in dependency order (a shared API/schema change lands before the callers
    that use it) so each commit compiles independently. Splitting further
@@ -80,8 +69,6 @@ above is for `.prefab`/`.unity` content changes, not for these:
 | Mistake | Fix |
 |---|---|
 | `git add -A` / `git add .` | Stage explicit paths per commit |
-| Committing a prefab on a guess, without reading its diff | Verify the diff either traces to a real C# change or is itself a coherent, deliberate value change |
-| Excluding a prefab-only diff just because no C# file touches it | Check whether the diff reads as deliberate (anchor/pivot moved, component toggled, a value set on purpose) before calling it noise |
-| Treating a version bump / save-state asset as includable because it "looks intentional" | The categorical exclusions (ad-SDK, Play-mode save-state, Addressables output, editor tool state) apply regardless of how deliberate the diff looks |
+| Committing a prefab because it's "probably related" | Verify the diff traces to a real C# change first |
 | Bundling unrelated features into one commit to avoid splitting work | Split — one concern per commit is the point |
 | Silently dropping an ambiguous asset change | Surface it to the user instead of guessing |

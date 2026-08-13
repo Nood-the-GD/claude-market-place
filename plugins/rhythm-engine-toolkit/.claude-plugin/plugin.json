@@ -1,7 +1,7 @@
 {
   "name": "rhythm-engine-toolkit",
   "description": "Claude Code skills and subagents for working in the rhythm-engine Unity repo (Magic Tiles 3 / Piano 7): code review, telemetry tracing, Firebase event tracking, OTA theme import, code reading, commit workflow, plus a task-context-gatherer -> task-decomposer -> task-planner -> unity-engineer -> plan-qc-reviewer implementation pipeline with project-docs-keeper and code-researcher/code-reader support agents.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": {
     "name": "Nood-the-GD"
   }
