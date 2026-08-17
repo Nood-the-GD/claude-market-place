@@ -12,6 +12,13 @@ Editor noise: reimport touches, ad-SDK version bumps, local dev toggles,
 Play-mode save-state. Never `git add -A` / `git add .` here — always stage
 explicit paths per commit.
 
+Classify every path `git status` reports, not just the files touched or
+discussed earlier in the current conversation. A file's presence or absence
+from the session's own edits is not a classification signal — a pending
+change from an earlier session, another tool, or a teammate's stash-pop is
+exactly as eligible as one made this turn. Decide purely from what `git diff
+-- <path>` shows against the rules below.
+
 ## What belongs in a commit
 
 - **C# files**: always in scope — they're the source of truth for intent.
@@ -45,6 +52,9 @@ excluded unless a specific line in the C# diff explains the value:
 ## Process
 
 1. `git status --porcelain=v1 -uno` and `git diff --stat` — never `-uall`.
+   Treat the full output as the candidate set, including paths never
+   mentioned earlier in the conversation — don't pre-filter to "files I
+   already know about."
 2. Classify every path with the rules above. For each `.prefab` / `.unity` /
    `.mat` / `.shader` / `.shadergraph` / `.asset` on the fence, run
    `git diff -- <path>` and check whether the field/ID/component/property it
@@ -73,3 +83,4 @@ excluded unless a specific line in the C# diff explains the value:
 | Committing a prefab/material/shader because it's "probably related" | Verify the diff traces to a real C# change first |
 | Bundling unrelated features into one commit to avoid splitting work | Split — one concern per commit is the point |
 | Silently dropping an ambiguous asset change | Surface it to the user instead of guessing |
+| Skipping a modified file because it wasn't edited or discussed earlier in the conversation | Classify every path from `git status`, session-touched or not, by its diff content alone |
