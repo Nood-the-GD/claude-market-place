@@ -1,6 +1,6 @@
 ---
 name: commit-changes
-description: Use when asked to commit pending changes in this Unity repo — splits a dirty working tree into clean, logically-grouped commits, keeping auto-generated Editor noise and unrelated asset drift out of C#/prefab/scene commits.
+description: Use when asked to commit pending changes in this Unity repo — splits a dirty working tree into clean, logically-grouped commits, keeping auto-generated Editor noise and unrelated asset drift out of C#/prefab/scene/material/shader commits.
 model: claude-sonnet-5
 effort: medium
 ---
@@ -15,16 +15,16 @@ explicit paths per commit.
 ## What belongs in a commit
 
 - **C# files**: always in scope — they're the source of truth for intent.
-- **`.prefab` / `.unity` (scenes)**: only if `git diff -- <path>` shows a
-  change that traces to a modified C# file in the *same* commit — a
+- **`.prefab` / `.unity` (scenes) / `.mat` (materials) / `.shader` /
+  `.shadergraph` / `.asset` and other assets**: only if `git diff -- <path>`
+  shows a change that traces to a modified C# file in the *same* commit — a
   component added/removed, a serialized field newly wired to a script
-  member, a GUID/string that matches a renamed C# constant. A prefab whose
-  diff is only transform numbers, GUID reordering, or fileID churn with no
-  corresponding C# change is noise — leave it out.
-- **`.asset` / other assets**: only if the diff content is a direct,
-  intentional consequence of the C# change (e.g. a database asset's entry
-  renamed to match a renamed constant in the paired C# diff). Default to
-  excluding.
+  member, a GUID/string that matches a renamed C# constant, a material or
+  shader property a script now reads/sets/references, a database asset's
+  entry renamed to match a renamed constant in the paired C# diff. A diff
+  that's only transform numbers, GUID reordering, or fileID churn with no
+  corresponding C# change is noise — leave it out. Default to excluding
+  when no such link is found.
 
 ## What to leave out by default
 
@@ -46,9 +46,10 @@ excluded unless a specific line in the C# diff explains the value:
 
 1. `git status --porcelain=v1 -uno` and `git diff --stat` — never `-uall`.
 2. Classify every path with the rules above. For each `.prefab` / `.unity` /
-   `.asset` on the fence, run `git diff -- <path>` and check whether the
-   field/ID/component it touches also appears in a modified C# file's diff —
-   don't guess from the filename or directory alone.
+   `.mat` / `.shader` / `.shadergraph` / `.asset` on the fence, run
+   `git diff -- <path>` and check whether the field/ID/component/property it
+   touches also appears in a modified C# file's diff — don't guess from the
+   filename or directory alone.
 3. Group the included files into logical commits: one concern per commit,
    in dependency order (a shared API/schema change lands before the callers
    that use it) so each commit compiles independently. Splitting further
@@ -69,6 +70,6 @@ excluded unless a specific line in the C# diff explains the value:
 | Mistake | Fix |
 |---|---|
 | `git add -A` / `git add .` | Stage explicit paths per commit |
-| Committing a prefab because it's "probably related" | Verify the diff traces to a real C# change first |
+| Committing a prefab/material/shader because it's "probably related" | Verify the diff traces to a real C# change first |
 | Bundling unrelated features into one commit to avoid splitting work | Split — one concern per commit is the point |
 | Silently dropping an ambiguous asset change | Surface it to the user instead of guessing |
