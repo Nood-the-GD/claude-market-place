@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "noody-toolkit",
-      "description": "Claude Code skills and subagents for the rhythm-engine Unity repo (Magic Tiles 3 / Piano 7): code review, telemetry tracing, Firebase event tracking, OTA theme import, code reading, commit workflow, plus a task-context-gatherer -> task-decomposer -> task-planner -> unity-engineer -> plan-qc-reviewer implementation pipeline.",
+      "description": "Claude Code skills and subagents for a Unity project: code review, telemetry tracing, Firebase event tracking, OTA theme import, code reading, commit workflow, plus a task-context-gatherer -> task-decomposer -> task-planner -> unity-engineer -> plan-qc-reviewer implementation pipeline.",
       "version": "1.0.6",
       "source": "./plugins/noody-toolkit",
       "author": {
