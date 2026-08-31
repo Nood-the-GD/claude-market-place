@@ -25,6 +25,22 @@ silently change logic, delete something, or leave a referenced file
 missing." Exclusion is for the specific noise patterns below, not a general
 caution reflex.
 
+**"Commit everything safe, investigate and decide yourself."** When the
+user says something like this — "commit all things if it's safe,
+investigate then make the decision yourself" — it is standing authorization
+to resolve *every* path yourself without coming back to ask, including
+large pre-existing changes spanning features you did not write. It does not
+lower the safety bar; it raises the investigation you owe each path. For
+every candidate: `git diff` it, resolve its GUID / path references and
+confirm each target is tracked or staged in the same commit, check for a
+same-GUID rename before treating a delete+add as unrelated, and for
+package or `.cs`-adjacent changes confirm the project still compiles (grep
+for usages of a removed package; force a recompile after staging). Then
+commit everything that clears the bar, grouped one concern per commit —
+a store-door feature, a HUD redesign, and a package cleanup each get their
+own commit, not one combined one. Only the specific generated / local-only
+noise below stays out. Report every call you made so the user can review.
+
 ## Always commit
 
 - **C# files.** Always in scope — they're the source of truth for intent.
@@ -115,4 +131,6 @@ Recurring noise patterns in this repo's working tree:
 | Bundling unrelated features into one commit to avoid splitting work | Split — one concern per commit is the point |
 | Silently dropping a genuinely ambiguous change with no fitting default | Surface it to the user instead of guessing |
 | Asking again mid-task after the user already said not to ask | "Don't ask" holds for the rest of the task — resolve with the closest default and report it |
+| Reading "commit everything safe, decide yourself" as "commit fast" and skipping the diff/reference/compile checks | It raises the investigation you owe each path, not lowers the bar — verify every path, then commit and report |
+| Bundling several pre-existing features into one commit because the user said "commit all" | "Commit all" still means one concern per commit — split the store door, the HUD redesign, and the package bump |
 | Skipping a modified file because it wasn't edited or discussed earlier in the conversation | Classify every path from `git status`, session-touched or not, by its diff content alone |
