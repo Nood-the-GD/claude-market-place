@@ -8,7 +8,7 @@
     {
       "name": "noody-toolkit",
       "description": "Claude Code skills and subagents for a Unity project: code review, telemetry tracing, Firebase event tracking, OTA theme import, code reading, commit workflow, plus a task-context-gatherer -> task-decomposer -> task-planner -> unity-engineer -> plan-qc-reviewer implementation pipeline.",
-      "version": "1.0.9",
+      "version": "1.0.10",
       "source": "./plugins/noody-toolkit",
       "author": {
         "name": "Nood-the-GD"
