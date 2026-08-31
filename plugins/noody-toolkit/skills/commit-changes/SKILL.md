@@ -61,12 +61,14 @@ reflex.
    compiles (shared schema before its callers). A store-door feature, a HUD
    redesign, and a package bump are three commits, not one.
 4. Ambiguous after the rules (not a rename/package/noise, no clear C# link):
-   don't silently include or drop it. If the user said not to ask ("just
-   commit", "commit everything safe, decide yourself"), that holds for the
-   whole task — decide with the closest default (noise-like → out, else →
-   in) and report the call. "Decide yourself" raises the investigation you
-   owe each path (diff, resolve references, confirm compile), it does not
-   lower the safety bar.
+   investigate it yourself, don't ask. `git diff` it, resolve its GUID/path
+   references, check the referenced targets are tracked or staged, and for
+   package or `.cs`-adjacent changes confirm the project still compiles.
+   Then decide with the closest default (noise-like → out, else → in) and
+   commit it. Investigating raises the bar of work you do per path; it does
+   not lower the safety bar. Pause and flag only what you genuinely cannot
+   make safe — a possible secret/credential, or a change you cannot verify
+   won't break the build. Every self-made call goes in the step 6 report.
 5. Stage by explicit path; message `type(scope): imperative summary`
    (`feat`/`fix`/`chore`, scope from `git log --oneline`); commit.
 6. Report each commit's contents and every exclusion with its reason.
