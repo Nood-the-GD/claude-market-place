@@ -20,6 +20,11 @@ noise (below) or committing it would silently change logic, delete
 something, or leave a referenced file missing — not as a general caution
 reflex.
 
+**Run end to end without asking.** Every include/exclude/grouping call is
+made from the rules here and reported afterward (step 6). Never stop
+mid-run for a question — when a path can't be made safe, leave it out and
+say so in the report.
+
 ## Commit
 
 - **C# files** — always.
@@ -66,9 +71,9 @@ reflex.
    package or `.cs`-adjacent changes confirm the project still compiles.
    Then decide with the closest default (noise-like → out, else → in) and
    commit it. Investigating raises the bar of work you do per path; it does
-   not lower the safety bar. Pause and flag only what you genuinely cannot
-   make safe — a possible secret/credential, or a change you cannot verify
-   won't break the build. Every self-made call goes in the step 6 report.
+   not lower the safety bar. A path you still cannot make safe — a possible
+   secret/credential, or a change you cannot verify won't break the build —
+   is left out and noted in step 6, not turned into a question.
 5. Stage by explicit path; message `type(scope): imperative summary`
    (`feat`/`fix`/`chore`, scope from `git log --oneline`); commit.
 6. Report each commit's contents and every exclusion with its reason.
